@@ -93,6 +93,17 @@ function defineTests({ chromium }) {
     { timeout: 20_000 },
   );
   const partsAre = (page, n) => page.waitForFunction((k) => document.getElementById('st-parts').textContent.startsWith(k + ' part'), n, { timeout: 30_000 });
+  // A Run updates the engine pill last (after the panels refresh) while the clock and the
+  // viewport are already live, so wait for it instead of sampling it once. Only wait on a
+  // state the previous one cannot satisfy ("engine error" -> ready, or a ready that follows
+  // a console line the Run itself printed).
+  const pillIs = async (page, expected, why) => {
+    try {
+      await page.waitForFunction((x) => document.getElementById('st-engine').textContent === x, expected, { timeout: 20_000 });
+    } catch {
+      assert.equal(await text(page, '#st-engine'), expected, why); // reports what the pill said instead
+    }
+  };
   const shot = async (page, name) => { if (shotDir) await page.screenshot({ path: path.join(shotDir, name + '.png') }); };
 
   describe('playground (browser)', () => {
@@ -240,7 +251,7 @@ function defineTests({ chromium }) {
       await consoleHas(s.page, /Script timeout: exhausted allowed execution time/);
       await consoleHas(s.page, /Paused: a script ran past the time limit/);
       assert.equal(await text(s.page, '#play'), '▶', 'the clock was paused');
-      assert.equal(await text(s.page, '#st-engine'), 'engine ready · worker', 'the engine itself is fine');
+      await pillIs(s.page, 'engine ready · worker', 'the engine itself is fine');
 
       await s.page.fill('#code', 'print("recovered")');
       await s.page.press('#code', 'Control+Enter');
@@ -284,9 +295,11 @@ function defineTests({ chromium }) {
 
       await s.page.evaluate(() => { delete window.boblox.client.frame; }); // un-break
       await s.page.click('#run');
+      // The pill starts at "engine error", so only the new Run finishing can turn it ready; the
+      // part count and the clock still show the dead world until the Run resets them.
+      await pillIs(s.page, 'engine ready · worker', 'Run recovered the engine');
       await partsAre(s.page, 10);
       await s.page.waitForFunction(() => window.boblox.state.now > 0.2);
-      assert.equal(await text(s.page, '#st-engine'), 'engine ready · worker');
       await s.finish();
     });
 
