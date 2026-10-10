@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <title>Boblox Playground</title>
+  <meta name="description" content="A Roblox-flavored Luau scripting engine compiled to WebAssembly, running entirely in your browser.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f6fed'/%3E%3Cpath d='M9 22V10l7-3.5 7 3.5v12l-7 3.5z' fill='none' stroke='white' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="app/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <svg class="logo" viewBox="0 0 32 32" width="26" height="26" aria-hidden="true"><rect width="32" height="32" rx="7" fill="var(--accent)"/><path d="M9 22V10l7-3.5 7 3.5v12l-7 3.5z" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"/></svg>
+      <h1>Boblox <span>Playground</span></h1>
+    </div>
+    <span class="tagline">Roblox-flavored Luau engine · WebAssembly · runs entirely in this tab</span>
+    <div class="spacer"></div>
+    <label class="field"><span>Example</span><select id="examples" aria-label="Example script"></select></label>
+    <button id="run" class="primary" title="Run in a fresh world (Ctrl/⌘ + Enter)">▶ Run</button>
+    <button id="reset" title="Discard the world and stop">⟲ Reset</button>
+  </header>
+
+  <main class="layout">
+    <section class="pane editor-pane" aria-label="Script editor">
+      <div class="pane-head"><h2>Script</h2><span class="hint">Luau · <kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>Enter</kbd> runs</span></div>
+      <div class="editor" id="editor">
+        <div class="gutter" id="gutter" aria-hidden="true"></div>
+        <div class="code">
+          <pre class="hl" id="hl" aria-hidden="true"></pre>
+          <textarea id="code" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" wrap="off" aria-label="Luau source code"></textarea>
+        </div>
+      </div>
+    </section>
+
+    <section class="pane view-pane" aria-label="3D viewport">
+      <div class="pane-head">
+        <h2>Viewport</h2>
+        <div class="transport" role="group" aria-label="Simulation clock">
+          <button id="play" class="icon" title="Play / pause the virtual clock (Space)" aria-pressed="false">⏸</button>
+          <button id="step1" title="Advance one frame (1/60 s)">+1 frame</button>
+          <button id="step2" title="Advance 0.5 s">+0.5 s</button>
+          <label class="field compact"><span>Speed</span>
+            <select id="speed" aria-label="Simulation speed">
+              <option value="0.25">0.25×</option><option value="0.5">0.5×</option>
+              <option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option>
+            </select>
+          </label>
+        </div>
+        <div class="spacer"></div>
+        <button id="frame" title="Frame everything">⤢ Frame</button>
+      </div>
+      <div class="viewport" id="viewport">
+        <canvas id="gl" tabindex="0" aria-label="3D view of Workspace. Drag to orbit, scroll to zoom, shift-drag to pan, click to select."></canvas>
+        <div class="vp-hint" id="vp-hint">drag: orbit · wheel: zoom · shift-drag: pan · click: select</div>
+        <div class="vp-msg" id="vp-msg" hidden></div>
+      </div>
+    </section>
+
+    <section class="pane console-pane" aria-label="Console">
+      <div class="pane-head">
+        <h2>Console</h2>
+        <div class="spacer"></div>
+        <label class="check"><input type="checkbox" id="timestamps"> virtual time</label>
+        <button id="clear" title="Clear the console">Clear</button>
+      </div>
+      <div class="console" id="console" role="log" aria-live="polite"></div>
+    </section>
+
+    <div class="bottom-right">
+      <section class="pane explorer-pane" aria-label="Explorer">
+        <div class="pane-head"><h2>Explorer</h2><span class="hint" id="tree-count"></span></div>
+        <div class="explorer" id="explorer" role="tree"></div>
+      </section>
+      <section class="pane props-pane" aria-label="Properties">
+        <div class="pane-head"><h2>Properties</h2><input id="prop-filter" type="search" placeholder="filter" aria-label="Filter properties"></div>
+        <div class="props" id="props"></div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="statusbar">
+    <span id="st-engine" class="pill">starting…</span>
+    <span id="st-time">t = 0.000 s</span>
+    <span id="st-parts">0 parts</span>
+    <span id="st-mem">Lua heap 0 KiB</span>
+    <span class="spacer"></span>
+    <label class="field compact"><span>Time limit</span>
+      <select id="limit" aria-label="Script time limit per call">
+        <option value="1000">1 s</option><option value="3000" selected>3 s</option><option value="10000">10 s</option><option value="0">none</option>
+      </select>
+    </label>
+    <span class="dim">Only the scripting engine runs here — no Roblox network or client code.</span>
+  </footer>
+
+  <script type="module" src="app/main.js"></script>
+</body>
+</html>

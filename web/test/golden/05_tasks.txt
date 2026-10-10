@@ -1,0 +1,43 @@
+== run ok
+P start
+P A1
+P main end of setup
+== step 1 t=0.250000
+P D1 (deferred: runs at the next pump)
+== step 2 t=0.500000
+P delay 0.5 fired
+P worker 1
+== step 3 t=0.750000
+== step 4 t=1.000000
+P A2 after 1
+P worker 2
+== step 5 t=1.250000
+== step 6 t=1.500000
+P worker 3
+P main resumed after 1.5
+P spawn args 1 two true
+P main reaches its end
+P zero-waits 5
+== step 7 t=1.750000
+== step 8 t=2.000000
+P A3
+== step 9 t=2.250000
+== step 10 t=2.500000
+E main:31: task failure at +1
+== step 11 t=2.750000
+P delay 2.75 fired
+== step 12 t=3.000000
+P still alive after failure
+== step 13 t=3.250000
+== step 14 t=3.500000
+P ticker done 5
+== step 15 t=3.750000
+== step 16 t=4.000000
+== step 17 t=4.250000
+== step 18 t=4.500000
+== step 19 t=4.750000
+== step 20 t=5.000000
+== step 21 t=5.250000
+== step 22 t=5.500000
+== step 23 t=5.750000
+== step 24 t=6.000000

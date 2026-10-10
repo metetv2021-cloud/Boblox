@@ -59,3 +59,9 @@ run/mocktail_cookie*
 /build-fuzz/
 fuzz/corpus/
 fuzz/artifacts/
+
+# === web/ : browser (WebAssembly) build outputs ============================
+web/dist/
+web/build-wasm/
+web/build-native/
+web/node_modules/

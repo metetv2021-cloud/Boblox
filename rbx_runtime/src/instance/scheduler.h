@@ -31,8 +31,10 @@ struct Scheduler {
     // yields, it becomes schedulable (task.wait). thread_ref is the refs-key
     // anchoring the thread; consumed here (freed when the thread finishes).
     void resume_now(lua_State* L, lua_State* thread, int thread_ref, int nargs_on_thread);
-    // schedule an already-prepared thread to start at now+delay.
-    void defer_start(lua_State* L, lua_State* thread, int thread_ref, double delay);
+    // schedule an already-prepared thread to start at now+delay. `nargs` is how
+    // many start arguments sit above the function on the thread's stack
+    // (task.delay(t, f, a, b) / task.defer(f, a, b) forward them on resume).
+    void defer_start(lua_State* L, lua_State* thread, int thread_ref, double delay, int nargs = 0);
     // yield the CURRENT thread (the lua_State of a running task.* call)
     // until now+t; pushes the resume value (t). Errors outside a schedulable
     // thread.
@@ -57,6 +59,7 @@ struct Scheduler {
         int thread_ref = 0;
         bool has_value = false; // resume with `value` (task.wait returns t)
         double value = 0.0;
+        int nargs = 0; // start arguments of a deferred first start (see defer_start)
     };
     struct HeapLater { // min-heap by (due, seq)
         bool operator()(const Entry& a, const Entry& b) const {
@@ -67,7 +70,7 @@ struct Scheduler {
     std::deque<Entry> deferred_;
     uint64_t next_seq_ = 1;
 
-    void push_heap(double due, int thread_ref);
+    void push_heap(double due, int thread_ref, int nargs = 0);
     void resume_entry(lua_State* L, const Entry& e);
 };
 

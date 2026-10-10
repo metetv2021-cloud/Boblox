@@ -40,7 +40,7 @@ int spawn_thread(lua_State* L, int fn_idx, Scheduler* s, double delay, bool imme
     if (immediate)
         s->resume_now(L, th, th_ref, nargs);
     else
-        s->defer_start(L, th, th_ref, delay);
+        s->defer_start(L, th, th_ref, delay, nargs);
     return 0;
 }
 
@@ -84,8 +84,8 @@ Scheduler* scheduler(lua_State* L) {
 
 // ---- core ------------------------------------------------------------------------
 
-void Scheduler::push_heap(double due, int thread_ref) {
-    heap_.push_back(Entry{due, next_seq_++, thread_ref, false, 0.0});
+void Scheduler::push_heap(double due, int thread_ref, int nargs) {
+    heap_.push_back(Entry{due, next_seq_++, thread_ref, false, 0.0, nargs});
     std::push_heap(heap_.begin(), heap_.end(), HeapLater{});
 }
 
@@ -104,9 +104,10 @@ void Scheduler::resume_now(lua_State* L, lua_State* thread, int thread_ref, int 
     ref_free(L, thread_ref);
 }
 
-void Scheduler::defer_start(lua_State* L, lua_State* thread, int thread_ref, double delay) {
+void Scheduler::defer_start(lua_State* L, lua_State* thread, int thread_ref, double delay,
+                            int nargs) {
     (void)thread; // already prepared; resumed from the heap/deferred queue
-    push_heap(now + delay, thread_ref);
+    push_heap(now + delay, thread_ref, nargs);
 }
 
 void Scheduler::defer_start_thread(lua_State* L, int thread_ref) {
@@ -135,7 +136,9 @@ void Scheduler::resume_entry(lua_State* L, const Entry& e) {
     }
     if (e.has_value)
         lua_pushnumber(th, e.value);
-    const int st = lua_resume(th, L, e.has_value ? 1 : 0);
+    // a task.wait resumption carries one value (the wait time); a deferred
+    // first start carries the arguments task.delay/task.defer were given
+    const int st = lua_resume(th, L, e.has_value ? 1 : e.nargs);
     int ref = e.thread_ref;
     if (st != 0 && st != LUA_YIELD) {
         const char* msg = lua_tostring(th, -1);

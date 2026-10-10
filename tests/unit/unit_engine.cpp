@@ -350,6 +350,32 @@ TEST_CASE("task.defer runs at the next pump; task.delay at now+t") {
     CHECK(env.now() == doctest::Approx(2.0));
 }
 
+TEST_CASE("task.delay / task.defer / task.spawn forward their arguments") {
+    // Regression: queued first starts used to resume with ZERO arguments, so
+    // the callee's stack held [fn, args...] with nothing marked as arguments
+    // and the first argument was "called" ("attempt to call a string value").
+    Env env;
+    env.exec(R"(
+        out = ""
+        task.spawn(function(a, b) out = out .. "s" .. a .. b end, 1, 2)
+        task.defer(function(a, b) out = out .. "d" .. a .. b end, 3, 4)
+        task.delay(1, function(a, b, c) out = out .. "l" .. a .. b .. c end, 5, 6, 7)
+        task.delay(2, function(...) out = out .. "n" .. select("#", ...) end)
+        task.delay(3, function(a) out = out .. "t" .. tostring(a) end, nil)
+    )");
+    lua_State* L = env.L();
+    CHECK(gstr(L, "out") == "s12"); // spawn resumes immediately
+    env.step(0.0);
+    CHECK(gstr(L, "out") == "s12d34"); // defer starts at the next pump
+    env.step(1.0);
+    CHECK(gstr(L, "out") == "s12d34l567");
+    env.step(1.0);
+    CHECK(gstr(L, "out") == "s12d34l567n0");
+    env.step(1.0);
+    CHECK(gstr(L, "out") == "s12d34l567n0tnil");
+    CHECK(rbx::scheduler(L)->last_error.empty());
+}
+
 TEST_CASE("workspace identity: global alias == GetService") {
     Env env;
     env.exec(R"(
