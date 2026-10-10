@@ -1,0 +1,13 @@
+[
+  {"file": "01_basics.luau"},
+  {"file": "02_errors.luau"},
+  {"file": "03_instances.luau"},
+  {"file": "04_datatypes.luau"},
+  {"file": "05_tasks.luau", "steps": 24, "dt": 0.25},
+  {"file": "06_signals.luau", "steps": 4, "dt": 0.1},
+  {"file": "07_stress.luau"},
+  {"file": "08_timeout.luau", "limitMs": 150},
+  {"file": "09_limits.luau"},
+  {"file": "10_workspace.luau", "tree": true, "props": true},
+  {"file": "11_task_args.luau", "steps": 12, "dt": 0.25}
+]

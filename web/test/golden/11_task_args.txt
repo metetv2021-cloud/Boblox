@@ -1,0 +1,20 @@
+== run ok
+P spawn 1 2
+P setup done
+== step 1 t=0.250000
+P defer 3 4
+== step 2 t=0.500000
+P delay 5 6 7
+== step 3 t=0.750000
+== step 4 t=1.000000
+P delay without args 0
+== step 5 t=1.250000
+== step 6 t=1.500000
+P delay with nil nil
+== step 7 t=1.750000
+== step 8 t=2.000000
+P delay with table 3 x z
+== step 9 t=2.250000
+== step 10 t=2.500000
+== step 11 t=2.750000
+== step 12 t=3.000000

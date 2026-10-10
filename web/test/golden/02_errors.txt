@@ -1,0 +1,29 @@
+== run fail
+P false main:5: attempt to index nil with 'y'
+P false main:6: attempt to perform arithmetic (add) on number and table
+P false main:7: attempt to get length of a number value
+P false main:8: attempt to concatenate nil with string
+P false main:9: table index is nil
+P false main:10: attempt to call missing method 'nope' of string
+P false main:11: attempt to index nil with 'field'
+P false table 7
+P false plain
+P false nil
+P false handled: main:17: deep
+P false assertion msg
+P false assertion failed!
+P 1
+P false main:23: from lvl2
+P false invalid argument #1 to 'setmetatable' (table expected, got number)
+P false main:26: invalid 'for' limit (number expected, got string)
+P false main:28: idx boom
+P false main:33: in coroutine
+P false main:37: bottom
+P 50
+P churn ok
+P false NotAClass is not a valid class name
+P false Unable to create an Instance of type 'Workspace'
+P false main:50: invalid argument #3 to '__newindex' (Vector3 expected, got string)
+P false main:51: cannot cycle the instance tree
+P engine churn ok
+E main:56: uncaught at end

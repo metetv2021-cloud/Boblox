@@ -1,0 +1,85 @@
+# Web — the WebAssembly build of the engine, its test-suites, and the playground.
+#
+# Separate from ci.yml on purpose: this needs Emscripten and a browser, not
+# OpenSSL/ngtcp2, and it only runs when something it depends on changes.
+#
+#  1. native reference build (web/build-native/boblox_cli) — the goldens in
+#     web/test/golden must still be exactly what it prints;
+#  2. WebAssembly build;
+#  3. Node tests, including WebAssembly-vs-native parity (also against a live
+#     native run here, not just the goldens);
+#  4. the playground in headless Chromium (Playwright).
+name: Web
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "web/**"
+      - "rbx_runtime/**"
+      - "third_party/luau"
+      - ".github/workflows/web.yml"
+  pull_request:
+    paths:
+      - "web/**"
+      - "rbx_runtime/**"
+      - "third_party/luau"
+      - ".github/workflows/web.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: web-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web:
+    runs-on: ubuntu-24.04
+    env:
+      EMSCRIPTEN_VERSION: "4.0.23" # what the build was developed and tested with
+    steps:
+      - uses: actions/checkout@v4
+
+      # Luau is the only submodule the web build needs (no ngtcp2, no doctest).
+      - name: Fetch Luau
+        run: git submodule update --init third_party/luau
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: ${{ env.EMSCRIPTEN_VERSION }}
+          actions-cache-folder: emsdk-cache
+
+      - name: Native reference build; goldens must still agree with it
+        run: |
+          ./web/build.sh native
+          node web/tools/gen-goldens.mjs --check
+
+      - name: Build WebAssembly
+        run: ./web/build.sh wasm
+
+      - name: Node tests (WebAssembly vs native, API, examples, build-profile guards)
+        working-directory: web
+        env:
+          BOBLOX_CLI: ./build-native/boblox_cli
+        run: npm test
+
+      - name: Playground tests (headless Chromium)
+        working-directory: web
+        env:
+          SCREENSHOT_DIR: ${{ runner.temp }}/playground-shots
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+          npm run test:browser
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: boblox-web
+          path: |
+            web/dist
+            ${{ runner.temp }}/playground-shots
+          if-no-files-found: ignore

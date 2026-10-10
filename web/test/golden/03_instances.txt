@@ -1,0 +1,24 @@
+== run ok
+P Body,Wheel,Wheel 3
+P true nil Car.Body true
+P Model Part true false true true
+P Workspace.Car.Body true true true true
+P true true
+P Body,Wheel nil
+P false main:34: cannot set Parent of a destroyed instance
+P 0.75 x true nil 1, 2, 3
+P Fuel;Label;Tag;Where
+P nil
+P false main:52: invalid argument #3 to '__newindex' (Vector3 expected, got string)
+P false main:53: invalid argument #3 to '__newindex' (boolean expected, got number)
+P false main:54: Nope is not a valid member of Part
+P false main:55: Nope is not a valid member of Part
+P false main:56: Property ClassName is read only
+P Cylinder 2 Neon true false
+P false main:62: wrong enum type (expected PartType)
+P a,b,c
+P a,c
+P a,c,b
+P 0 nil Workspace.F
+P Players Lighting false true
+P table Instance Instance 00000000-0000-0000-0000-000000000000

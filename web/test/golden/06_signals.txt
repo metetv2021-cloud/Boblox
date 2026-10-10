@@ -1,0 +1,22 @@
+== run ok
+P true RBXScriptConnection RBXScriptSignal
+P name->A,name->B false
+P once fired 1
+P first>second>third
+P true
+P survivors 1
+P setter returned before the waiter resumed
+P attribute changes 3
+P 30
+P died!
+P -10
+P RBXScriptSignal RBXScriptSignal
+P true
+P setup done
+== step 1 t=0.100000
+P Locked changed; waiter resumed
+== step 2 t=0.200000
+== step 3 t=0.300000
+P late child: Late
+P ghost: nil
+== step 4 t=0.400000

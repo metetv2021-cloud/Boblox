@@ -23,6 +23,7 @@ knowledge base; this README is just orientation.
 | `tools/` | Test harnesses (`regress9b.py`, `ch_diff.py`, `msg_parity.py`), bytecode RE tools, and gdb capture scripts. |
 | `test/` | Browser-extension WebTransport codec tests (`codec.test.mjs`) and a test server. |
 | `src/`, `manifest.json` | The `RBXWeb` browser-extension experiments (WebTransport bridge). |
+| `web/` | **Browser build**: the `rbx_runtime` engine compiled to WebAssembly, a JS API, and a playground (editor, console, Explorer, WebGL viewport). Scripting engine only — no client/network code. See [`web/README.md`](web/README.md). |
 | `third_party/` | Git submodules: `ngtcp2` (QUIC), `luau` (pinned; never modified). |
 | `run/` | Captured datasets and fixtures (mostly gitignored, a few whitelisted for tests). **Account cookies live here and are never committed.** |
 | `tests/` | CTest wiring for the whole battery, `run_all.sh` (standalone flow), doctest unit suites (`tests/unit/`), golden stage vectors (`tests/vectors/`). |
@@ -61,6 +62,20 @@ cmake --build client/build -j
 Dependencies: CMake ≥ 3.16 (≥ 3.21 for the presets), a C++17 compiler,
 OpenSSL, zstd, libcurl, nlohmann/json, Node.js (for the extension codec
 tests).
+
+### Browser build
+
+The scripting engine (not the network client) also builds to WebAssembly. It is a separate
+project — it is not part of the superbuild or `ctest`:
+
+```sh
+source /path/to/emsdk/emsdk_env.sh      # Emscripten (developed on 4.0.23)
+./web/build.sh                          # -> web/dist/boblox_engine.{mjs,wasm}
+node web/tools/serve.mjs                # playground at http://127.0.0.1:8080/
+(cd web && npm test)                    # WebAssembly-vs-native parity + API tests, ~5 s
+```
+
+Details, the JavaScript API and the test suites: [`web/README.md`](web/README.md).
 
 ## Test
 
