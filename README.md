@@ -20,7 +20,7 @@ knowledge base; this README is just orientation.
 | `client/` | C++ network stack: QUIC (ngtcp2 + OpenSSL), RUPP wrapping, session layer, handshake/message builders. Targets: `rbx_solve`, `rbx_session`, `rbx_transport`, and the test CLIs `regress9b`, `hs1818`, `rbxplay`. |
 | `rbx_runtime/` | The Roblox **scripting environment**: hosts the Luau VM and provides Roblox globals (`game`, `RunService`, `UserSettings`, `Random`, …) + the sandbox rules. Modular: one file per API surface, see below. `src/instance/` is the **instance world** (class registry, tree, signals, task scheduler) behind the Engine profile; `engine.h` is the persistent-environment facade for embedders (the future renderer). |
 | `py/` | Python reference solver (`solve9b.py`) and the RE probes used against live servers. Research tooling — the hot path is C++. |
-| `tools/` | Test harnesses (`regress9b.py`, `ch_diff.py`, `msg_parity.py`), bytecode RE tools, and gdb capture scripts. |
+| `tools/` | Test harnesses (`regress9b.py`, `ch_diff.py`, `msg_parity.py`), bytecode RE tools, gdb capture scripts, and the AppImage packaging (`tools/appimage/`). |
 | `test/` | Browser-extension WebTransport codec tests (`codec.test.mjs`) and a test server. |
 | `src/`, `manifest.json` | The `RBXWeb` browser-extension experiments (WebTransport bridge). |
 | `third_party/` | Git submodules: `ngtcp2` (QUIC), `luau` (pinned; never modified). |
@@ -137,6 +137,25 @@ Note: back-to-back runs on the *same account* can get a transient early
 `ERR_DRAINING` before any challenge arrives (the previous session's kick /
 server-side state — see FINDINGS.md). Wait ~20s and retry; it is not a
 client-side fault.
+
+## AppImage
+
+`rbxplay` also ships as one portable file that runs on any x86-64 Linux with
+glibc ≥ 2.28 (Debian 10+, Ubuntu 20.04+, RHEL 8+, current Fedora/Arch) — no
+OpenSSL 3.5 or other libraries needed on the machine:
+
+```sh
+./tools/appimage/build.sh                                 # -> build-appimage/Boblox-x86_64.AppImage
+./Boblox-x86_64.AppImage selftest                         # offline: the 5 bundled challenges, 5/5 match
+./Boblox-x86_64.AppImage --cookie-file run/cookie2.txt    # live run; takes every rbxplay option
+```
+
+The script downloads pinned, checksum-verified inputs (Zig as the toolchain,
+OpenSSL 3.5.7, curl, zstd, appimagetool), builds everything with Zig's clang
+against glibc 2.28 with all libraries linked statically, runs the full ctest
+battery on that build, and refuses to package a binary that needs a newer
+glibc or any other shared library. The capture templates rbxplay loads are
+bundled. No FUSE on the machine? Add `--appimage-extract-and-run`.
 
 ## How the 0x9B challenge is solved
 

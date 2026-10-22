@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Boblox
+GenericName=Roblox protocol client
+Comment=Research client for Roblox's network protocol (rbxplay)
+Exec=rbxplay
+Icon=boblox
+Terminal=true
+Categories=Network;
+X-AppImage-Version=@VERSION@

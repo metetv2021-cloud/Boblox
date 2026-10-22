@@ -1,0 +1,60 @@
+#!/bin/sh
+# AppRun — entry point of Boblox-x86_64.AppImage (built by tools/appimage/build.sh).
+#
+#   Boblox-x86_64.AppImage --cookie-file FILE [rbxplay options]   live run
+#   Boblox-x86_64.AppImage selftest        offline: solve the 5 bundled 0x9B challenges
+#   Boblox-x86_64.AppImage --help | --version
+set -eu
+
+HERE=$(dirname "$(readlink -f "$0")")
+SHARE=$HERE/usr/share/boblox
+SELF=$(basename "${APPIMAGE:-$0}")
+
+# Never read the host's openssl.cnf: a system-wide crypto policy must not
+# change the QUIC ClientHello (handshake parity with the native client).
+export OPENSSL_CONF="$SHARE/openssl.cnf"
+
+# The HTTPS join verifies against OpenSSL's default trust store. Point it at
+# the distro's CA bundle (paths differ per distro) unless one is already set.
+if [ -z "${SSL_CERT_FILE:-}" ]; then
+  for f in /etc/ssl/certs/ca-certificates.crt \
+           /etc/pki/tls/certs/ca-bundle.crt \
+           /etc/ssl/ca-bundle.pem \
+           /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem \
+           /etc/ssl/cert.pem; do
+    if [ -r "$f" ]; then
+      export SSL_CERT_FILE="$f"
+      break
+    fi
+  done
+fi
+
+case "${1:-}" in
+  selftest)
+    shift
+    exec "$HERE/usr/bin/regress9b" "$SHARE/selftest" "$@"
+    ;;
+  --version)
+    cat "$SHARE/VERSION"
+    exit 0
+    ;;
+  -h | --help | help)
+    cat <<EOF
+Boblox $(cat "$SHARE/VERSION") - rbxplay, the local-solver Roblox client
+
+  $SELF --cookie-file FILE [options]   join a live server (default: place 1818, 45s)
+  $SELF selftest                       offline check: solve the 5 bundled 0x9B challenges
+
+All rbxplay options work; the bundled capture templates are used unless
+--cap-dir is given.
+
+EOF
+    "$HERE/usr/bin/rbxplay" --help 2>&1 || true
+    exit 0
+    ;;
+esac
+
+# rbxplay loads its 0x90 template and A7 message from --cap-dir (default:
+# py/captures relative to the cwd). Pass the bundled copies first so a
+# --cap-dir given by the caller still wins (the last one is used).
+exec "$HERE/usr/bin/rbxplay" --cap-dir "$SHARE/captures" "$@"

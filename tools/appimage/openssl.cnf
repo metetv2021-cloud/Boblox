@@ -1,0 +1,3 @@
+# Intentionally empty. AppRun points OPENSSL_CONF here so the host's
+# system-wide OpenSSL configuration (crypto policies, SECLEVEL, ...) never
+# alters the client's TLS/QUIC handshake.

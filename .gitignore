@@ -3,6 +3,7 @@
 /build/
 /build-debug/
 /build-asan/
+/build-appimage/
 client/build/
 rbx_runtime/build/
 rbx_runtime/build-*/
