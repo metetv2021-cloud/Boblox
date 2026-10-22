@@ -249,11 +249,14 @@ RUNTIME=$(fetch "$RUNTIME_URL" "$RUNTIME_SHA")
 chmod +x "$AIT"
 IMAGE=$OUT/Boblox-x86_64.AppImage
 rm -f "$IMAGE"
-# extract-and-run: works without FUSE (containers, CI)
-run appimagetool.log env ARCH=x86_64 APPIMAGE_EXTRACT_AND_RUN=1 \
+# Extract-and-run works without FUSE (containers, CI). The runtime leaves
+# its unpacked copy behind, so keep those under $OUT/tmp, not /tmp.
+rm -rf "$OUT/tmp"
+mkdir -p "$OUT/tmp"
+run appimagetool.log env ARCH=x86_64 APPIMAGE_EXTRACT_AND_RUN=1 TMPDIR="$OUT/tmp" \
   "$AIT" --no-appstream --runtime-file "$RUNTIME" "$APPDIR" "$IMAGE"
 
 log "smoke test: $IMAGE selftest"
-APPIMAGE_EXTRACT_AND_RUN=1 "$IMAGE" selftest
+TMPDIR=$OUT/tmp APPIMAGE_EXTRACT_AND_RUN=1 "$IMAGE" selftest
 echo
 ls -l "$IMAGE"
